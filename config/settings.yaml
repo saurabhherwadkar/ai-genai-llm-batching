@@ -14,6 +14,12 @@ batch_size: 5
 # Maximum number of API calls to make simultaneously
 max_concurrent_requests: 3
 
+# Queue-based batch aggregation settings
+# Number of requests to accumulate before dispatching as a batch
+queue_batch_size: 10
+# Maximum milliseconds to wait for a full batch before flushing early
+queue_flush_timeout_ms: 100
+
 # HTTP request settings
 # Timeout for each individual API request in seconds
 request_timeout_seconds: 30.0

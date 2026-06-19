@@ -58,6 +58,9 @@ class AppConfig(BaseSettings):
     default_max_tokens: int = Field(default=256, ge=1, le=4096, description="Default max tokens")
     # Default sampling temperature
     default_temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="Default temperature")
+    # Queue-based batching settings
+    queue_batch_size: int = Field(default=10, ge=1, le=1000, description="Requests to accumulate before flushing")
+    queue_flush_timeout_ms: int = Field(default=100, ge=1, le=60000, description="Max ms to wait for a full batch")
     # Logging level configuration
     log_level: str = Field(default="INFO", description="Logging level")
 

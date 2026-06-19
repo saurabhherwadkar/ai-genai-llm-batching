@@ -29,6 +29,8 @@ def test_config() -> AppConfig:
         default_model="test-model",
         default_max_tokens=100,
         default_temperature=0.5,
+        queue_batch_size=5,
+        queue_flush_timeout_ms=50,
         log_level="DEBUG",
     )
 

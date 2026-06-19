@@ -1,19 +1,13 @@
-# main.py
-# Entry point for the LLM batching demonstration application.
-# Demonstrates how to use the batch processing pipeline to send
-# multiple prompts efficiently to an LLM API endpoint.
-
 import asyncio
 import logging
 
-from llm_batching.batch_processor import BatchProcessor
+from llm_batching.batch_queue import BatchQueue
 from llm_batching.config import create_config
 from llm_batching.logger_setup import configure_logging
+from llm_batching.models import BatchResponse
 
-# Module-level logger for main application flow
 logger = logging.getLogger(__name__)
 
-# Example prompts demonstrating various LLM use cases for batching
 EXAMPLE_PROMPTS = [
     "Explain what a neural network is in one sentence.",
     "What is the capital of France?",
@@ -23,92 +17,80 @@ EXAMPLE_PROMPTS = [
     "Summarize the concept of machine learning in two sentences.",
     "What is the time complexity of binary search?",
     "Name three benefits of containerization with Docker.",
+    "What is the CAP theorem?",
+    "Explain recursion in one sentence.",
+    "What is a hash table?",
+    "Name three sorting algorithms and their time complexities.",
+    "What is the difference between TCP and UDP?",
+    "Explain what an API gateway does.",
+    "What is eventual consistency?",
+    "Describe the observer design pattern in one sentence.",
+    "What is a deadlock?",
+    "Explain the difference between concurrency and parallelism.",
+    "What is memoization?",
+    "Name three NoSQL database types.",
+    "What is a load balancer?",
+    "Explain what CORS is in one sentence.",
+    "What is the difference between authentication and authorization?",
+    "Describe the pub/sub messaging pattern.",
+    "What is a circuit breaker pattern?",
 ]
 
 
-async def run_batch_processing() -> None:
-    """
-    Execute the full batch processing demonstration.
-
-    Loads configuration, initializes the processor, sends example
-    prompts through the pipeline, and displays the results.
-    """
-    # Load application configuration from YAML and environment
+async def run_batch_queue_demo() -> None:
     config = create_config()
-
-    # Configure logging with the level from configuration
     configure_logging(config.log_level)
 
-    # Log the start of the demonstration
-    logger.info("Starting LLM Batching demonstration")
-    logger.info("Processing %d example prompts", len(EXAMPLE_PROMPTS))
+    logger.info("Starting BatchQueue demonstration")
+    logger.info(
+        "Submitting %d prompts (queue_batch_size=%d, flush_timeout=%dms)",
+        len(EXAMPLE_PROMPTS),
+        config.queue_batch_size,
+        config.queue_flush_timeout_ms,
+    )
 
-    # Initialize the batch processor with configuration
-    processor = BatchProcessor(config)
+    queue = BatchQueue(config)
+    await queue.start()
 
     try:
-        # Process all example prompts through the batching pipeline
-        result = await processor.process_prompts(EXAMPLE_PROMPTS)
-
-        # Display the batch processing results
-        _display_results(result)
-
+        # Simulate many independent callers submitting concurrently
+        tasks = [queue.submit(prompt) for prompt in EXAMPLE_PROMPTS]
+        responses: list[BatchResponse] = await asyncio.gather(*tasks)
+        _display_results(responses)
     finally:
-        # Ensure resources are released regardless of success or failure
-        await processor.close()
+        await queue.stop()
 
 
-def _display_results(result) -> None:
-    """
-    Display the batch processing results in a readable format.
+def _display_results(responses: list[BatchResponse]) -> None:
+    successful = [r for r in responses if r.success]
+    failed = [r for r in responses if not r.success]
+    total_tokens = sum(r.tokens_used for r in responses)
 
-    Prints summary statistics and individual response details
-    to demonstrate the output of the batching pipeline.
-
-    Args:
-        result: The BatchResult containing all responses and statistics.
-    """
-    # Print summary header
     print("\n" + "=" * 60)
-    print("BATCH PROCESSING RESULTS")
+    print("BATCH QUEUE RESULTS")
     print("=" * 60)
-
-    # Print summary statistics
-    print(f"Total Requests:  {result.total_requests}")
-    print(f"Successful:      {result.successful_count}")
-    print(f"Failed:          {result.failed_count}")
-    print(f"Total Tokens:    {result.total_tokens_used}")
+    print(f"Total Requests:  {len(responses)}")
+    print(f"Successful:      {len(successful)}")
+    print(f"Failed:          {len(failed)}")
+    print(f"Total Tokens:    {total_tokens}")
     print("-" * 60)
 
-    # Print each individual response
-    for response in result.responses:
-        # Print the request ID and status
+    for response in responses:
         status_indicator = "OK" if response.success else "FAIL"
         print(f"\n[{status_indicator}] Request: {response.request_id}")
         if response.success:
-            # Print successful response content (truncated for display)
             content_preview = response.content[:100] + "..." if len(response.content) > 100 else response.content
             print(f"    Response: {content_preview}")
             print(f"    Tokens:   {response.tokens_used}")
         else:
-            # Print error information for failed requests
             print(f"    Error:    {response.error_message}")
 
-    # Print footer
     print("\n" + "=" * 60)
 
 
 def main() -> None:
-    """
-    Application entry point that runs the async batch processing.
-
-    Sets up the asyncio event loop and executes the batch
-    processing demonstration coroutine.
-    """
-    # Run the async batch processing in the event loop
-    asyncio.run(run_batch_processing())
+    asyncio.run(run_batch_queue_demo())
 
 
-# Execute main when this module is run directly
 if __name__ == "__main__":
     main()
