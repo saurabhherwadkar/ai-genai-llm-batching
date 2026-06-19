@@ -1,0 +1,64 @@
+# .gitignore
+# Python project ignore patterns for the LLM Batching project.
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Poetry
+poetry.lock
+
+# Distribution and packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Environment and secrets files
+.env
+*.pem
+*.key
+*.crt
+
+# Test and coverage reports
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Log files
+*.log
+logs/
+
+# Local database files
+*.db
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,23 @@
+# docker-compose.yml
+# Orchestrates the LLM Batching application container.
+# Provides environment variable injection and volume mounting
+# for configuration overrides.
+
+services:
+  # Main application service running the batch processor
+  llm-batching:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-batching-app
+    # Load environment variables from .env file
+    env_file:
+      - .env
+    # Mount config directory for runtime configuration changes
+    volumes:
+      - ./config:/app/config:ro
+    # Environment variables (override .env if needed)
+    environment:
+      - LLM_BATCH_LOG_LEVEL=INFO
+    # Restart policy for production resilience
+    restart: "no"
